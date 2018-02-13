@@ -32,6 +32,9 @@ def home():
 @app.route('/convert', methods=['POST'])
 def covert():
 
+    # admin level
+    adm_level = request.form.get('adm_level_select')
+
     # coordinates
     coordinates = request.files['file']
     df = pd.read_csv(coordinates)
@@ -49,7 +52,8 @@ def covert():
         shpf = shapefile.Reader('data/'+filename)
 
     for ix, row in df.iterrows():
-        df.loc[ix, 'ADM1_ix'], df.loc[ix, 'ADM1'], df.loc[ix, 'COuntry_ix'], df.loc[ix, 'Country'] =\
+        df.loc[ix, 'ADM{}_ID'.format(adm_level)], df.loc[ix, 'ADM{}'.format(adm_level)], \
+        df.loc[ix, 'ADM0_ID'], df.loc[ix, 'ADM0'] =\
             converter_func(shpf, row.Latitude, row.Longitude)
 
     resp = make_response(df.to_csv())
