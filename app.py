@@ -4,11 +4,8 @@ import os
 import pandas as pd
 from shapely.geometry import shape, Point
 from flask import Flask, request, render_template, make_response
+from werkzeug.utils import secure_filename
 app = Flask(__name__, instance_relative_config=True)
-
-# shapefile ---------------------------
-shapefile_path = 'data/global_adm1.shp'
-shpf = shapefile.Reader(shapefile_path)
 
 
 def converter_func(shapefile, lat, lon):
@@ -27,7 +24,6 @@ def converter_func(shapefile, lat, lon):
     return None
 
 
-
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -36,9 +32,21 @@ def home():
 @app.route('/convert', methods=['POST'])
 def covert():
 
+    # coordinates
     coordinates = request.files['file']
     df = pd.read_csv(coordinates)
     print(df.head())
+
+    # shapefile
+    if 'shfile' not in request.files:
+        # use local shapefile
+        shapefile_path = 'data/global_adm1.shp'
+        shpf = shapefile.Reader(shapefile_path)
+    else:
+        shfile = request.files['shfile']
+        filename = secure_filename(shfile.filename)
+        shfile.save('data/'+filename)
+        shpf = shapefile.Reader('data/'+filename)
 
     for ix, row in df.iterrows():
         df.loc[ix, 'ADM1_ix'], df.loc[ix, 'ADM1'], df.loc[ix, 'COuntry_ix'], df.loc[ix, 'Country'] =\
