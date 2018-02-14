@@ -17,11 +17,11 @@ def converter_func(shapefile, lat, lon):
         point = Point(lon, lat)
 
         if polygon.contains(point):
-            print(lat, lon, shp.record)
+            print('bingo! -> {}'.format(shp.record))
             return shp.record
 
-    print('cooridnates not found')
-    return None
+    print('cooridnates not in shapefile. Maybe at sea?')
+    return [None, None, None, None]
 
 
 @app.route('/')
@@ -52,6 +52,7 @@ def covert():
         shpf = shapefile.Reader('data/'+filename)
 
     for ix, row in df.iterrows():
+        print('finding coordinates {} {}'.format(row.Latitude, row.Longitude))
         df.loc[ix, 'ADM{}_ID'.format(adm_level)], df.loc[ix, 'ADM{}'.format(adm_level)], \
         df.loc[ix, 'ADM0_ID'], df.loc[ix, 'ADM0'] =\
             converter_func(shpf, row.Latitude, row.Longitude)
