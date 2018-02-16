@@ -1,4 +1,3 @@
-# https://stackoverflow.com/questions/7861196/check-if-a-geopoint-with-latitude-and-longitude-is-within-a-shapefile
 import os
 import pandas as pd
 from shapely.geometry import Point
@@ -17,16 +16,16 @@ def home():
 @app.route('/convert', methods=['POST'])
 def covert():
 
-    # admin level
-    adm_level = request.form.get('adm_level_select')
-
     # coordinates
     coordinates = request.files['file']
     df = pd.read_csv(coordinates)
-    print(df.head())
-    geometry = [Point(xy) for xy in zip(df.Longitude, df.Latitude)]
+
+    # convert to geographic data
+    tmp = df[['Longitude','Latitude']].dropna()
+    print(tmp.head())
+    geometry = [Point(xy) for xy in zip(tmp.Longitude, tmp.Latitude)]
     crs = {'init': 'epsg:2263'}  # http://www.spatialreference.org/ref/epsg/2263/
-    geo_df = gp.GeoDataFrame(df, crs=crs, geometry=geometry)
+    geo_df = gp.GeoDataFrame(tmp, crs=crs, geometry=geometry)
 
     # shapefile
     if 'shfile' not in request.files:
@@ -42,7 +41,9 @@ def covert():
 
     output = pd.DataFrame(pointInPolys.drop('geometry', axis=1))
 
-    resp = make_response(output.to_csv())
+    df = df.merge(output, on=['Longitude','Latitude'], how='left')
+
+    resp = make_response(df.to_csv())
     resp.headers["Content-Disposition"] = "attachment; filename=export.csv"
     resp.headers["Content-Type"] = "text/csv"
     return resp
