@@ -17,7 +17,7 @@ before_install:
   - conda list
 
 install:
-  - conda create -n test-environment -c conda-forge python=$TRAVIS_PYTHON_VERSION click flask geos pandas shapely
+  - conda create -n test-environment -c conda-forge python=$TRAVIS_PYTHON_VERSION click flask geos pandas shapely geopandas
   - source activate test-environment
 
 script:
