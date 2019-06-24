@@ -22,20 +22,22 @@ def covert():
 
     # convert to geographic data
     tmp = df[['Longitude','Latitude']].dropna()
-    print(tmp.head())
     geometry = [Point(xy) for xy in zip(tmp.Longitude, tmp.Latitude)]
-    crs = {'init': 'epsg:2263'}  # http://www.spatialreference.org/ref/epsg/2263/
+    crs = {'init': 'epsg:4326'}  # http://www.spatialreference.org/ref/epsg/2263/
     geo_df = gp.GeoDataFrame(tmp, crs=crs, geometry=geometry)
 
     # shapefile
-    if 'shfile' not in request.files:
-        # use local shapefile
-        shpf = gp.GeoDataFrame.from_file('data/global_adm2.shp')
-    else:
-        shfile = request.files['shfile']
-        filename = secure_filename(shfile.filename)
-        shfile.save('data/'+filename)
-        shpf = gp.GeoDataFrame.from_file('data/'+filename)
+    print(request.form)
+    #shfile = request.files['shfile']
+    #filename = secure_filename(shfile.filename)
+    #shfile.save('data/'+filename)
+    print(request.form['shfile'])
+    if request.form['shfile'] == 'standard':
+        filename = 'W:/OSZ/OMXF/SHAPEFILES/Standardized_admin_areas/ADM2/global_adm2.shp'
+    if request.form['shfile'] == 'RBD':
+        filename = 'W:/OSZ/OMXF/SHAPEFILES/RBD_GAUL_REV2019/rbd_vam_cod_bnd_admin_level_2_gaul_revised_20190304.shp'
+
+    shpf = gp.GeoDataFrame.from_file(filename)
 
     pointInPolys = sjoin(geo_df, shpf, how='left')
 
@@ -57,4 +59,4 @@ if __name__ == '__main__':
 
     # Bind to PORT if defined, otherwise default to 5000.
     port = int(os.environ.get('PORT', 2018))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, debug=True)
